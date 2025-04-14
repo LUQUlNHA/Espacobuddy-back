@@ -2,17 +2,54 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:15
-    container_name: postgres
+    image: ghcr.io/nicolasbarsalini/postgres:latest
+    container_name: espacobuddy_postgres
     restart: always
+    networks:
+      - espacobuddy_network
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "${DATABASEPORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./assets/postgres/scripts:/docker-entrypoint-initdb.d
+
+  keycloak:
+    image: ghcr.io/nicolasbarsalini/keycloak:latest
+    container_name: espacobuddy_keycloak
+    user: root
+    depends_on:
+      - postgres
+    networks:
+      - espacobuddy_network
+    ports:
+      - "${KEYCLOAKPORT:-8080}:8080"
+    restart: always
+    volumes:
+      - ./assets/keycloak/themes:/opt/keycloak/themes
+      - ./assets/keycloak/import:/opt/keycloak/data/import
+      - urbaneden_keycloak_volume:/opt/keycloak/data
+    environment:
+      JAVA_OPTS: "-Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.scripts=enabled -Dkeycloak.profile.feature.authorization=enabled -Dkeycloak.profile.mode=standalone"
+      KC_DB: "postgres"
+      KC_DB_URL: "jdbc:postgresql://espacobuddy_postgres:5432/keycloak"
+      KC_DB_USERNAME: "postgres"
+      KC_DB_PASSWORD: "postgres"
+      KC_HTTPS_PORT: "8443"
+      KC_FEATURES: "scripts,authorization"
+      KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+      KC_THEME: "custom-themes"
+      KC_THEME_EMAIL: "custom-themes"
+    command: ["start-dev"]
 
 volumes:
   pgdata:
+  urbaneden_keycloak_volume:
+
+networks:
+  espacobuddy_network:
+    driver: bridge
