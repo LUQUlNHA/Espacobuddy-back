@@ -712,7 +712,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "9wYxwmnwjaAUt31lyAZYcyTT6xuz9UIt",
       "redirectUris": [
         "htpp://localhost:8080/realms/espaco-buddy-client/account"
       ],
@@ -1579,7 +1579,7 @@
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
   "smtpServer": {
-    "password": "**********",
+    "password": "poek xpji sybn lwya",
     "replyToDisplayName": "",
     "starttls": "true",
     "auth": "true",
