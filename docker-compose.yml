@@ -70,6 +70,54 @@ services:
       retries: 5
       start_period: 30s
 
+  register:
+    build:
+      context: ./services/register  # Caminho onde está seu Dockerfile ou Containerfile
+      dockerfile: Containerfile # Ou "Dockerfile", se for o nome padrão
+    container_name: espacobuddy_register
+    restart: always
+    ports:
+      - "${LIST_PORT:-5000}:5000"
+    environment:
+      FLASK_ENV: ${FLASK_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - espacobuddy_network
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      retries: 5
+      start_period: 30s
+
+  delete:
+    build:
+      context: ./services/delete  # Caminho onde está seu Dockerfile ou Containerfile
+      dockerfile: Containerfile # Ou "Dockerfile", se for o nome padrão
+    container_name: espacobuddy_delete
+    restart: always
+    ports:
+      - "${LIST_PORT:-5004}:5004"
+    environment:
+      FLASK_ENV: ${FLASK_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - espacobuddy_network
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/health"]
+      interval: 30s
+      retries: 5
+      start_period: 30s
+
 volumes:
   pgdata:
   urbaneden_keycloak_volume:
