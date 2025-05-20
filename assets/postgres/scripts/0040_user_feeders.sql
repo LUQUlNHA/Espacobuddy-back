@@ -19,7 +19,7 @@ BEGIN
     SELECT EXISTS (
         SELECT 1
         FROM dblink('dbname=keycloak', 
-            'SELECT id FROM users WHERE id = ' || quote_literal(user_uuid)
+            'SELECT id FROM user_entity WHERE id = ' || quote_literal(user_uuid)
         ) AS t(id UUID)
     ) INTO result;
 
@@ -38,7 +38,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger que chama a verificação sempre que um novo registro for inserido
-CREATE TRIGGER trg_validate_user_exists
+CREATE OR REPLACE TRIGGER trg_validate_user_exists
 BEFORE INSERT ON user_feeders
 FOR EACH ROW
 EXECUTE FUNCTION validate_user_exists();
