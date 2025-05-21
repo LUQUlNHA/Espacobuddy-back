@@ -1,0 +1,23 @@
+# Use a imagem base do Python
+FROM python:3.11-slim
+
+# Defina o diretório de trabalho dentro do contêiner
+WORKDIR /app
+
+# Copiar o arquivo .env para dentro do contêiner
+COPY .env /app/.env
+
+# Copie o arquivo de requisitos para dentro do contêiner
+COPY requirements.txt /app/
+
+# Instale as dependências do projeto
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copie o código da aplicação para dentro do contêiner
+COPY . /app/
+
+# Exponha a porta que a aplicação irá rodar
+# EXPOSE 5005
+
+# Comando para rodar a aplicação com Gunicorn
+CMD ["python", "main.py"]
