@@ -1,6 +1,6 @@
 \c espacobuddy
 
-CREATE TABLE IF NOT EXISTS rotines (
+CREATE TABLE IF NOT EXISTS routines (
     id SERIAL PRIMARY KEY,
     routine_name VARCHAR(255) NOT NULL,
     feeder_id UUID NOT NULL REFERENCES feeders(id),
@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS rotines (
 
 -- Trigger que chama a verificação sempre que um novo registro for inserido
 CREATE OR REPLACE TRIGGER trg_validate_user_exists_two
-BEFORE INSERT ON rotines
+BEFORE INSERT ON routines
 FOR EACH ROW
 EXECUTE FUNCTION validate_user_exists();

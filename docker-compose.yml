@@ -1,5 +1,8 @@
 version: "3.8"
 
+# ======================
+# 📦 Banco de Dados
+# ======================
 services:
   postgres:
     image: ghcr.io/nicolasbarsalini/postgres:latest
@@ -14,9 +17,12 @@ services:
     ports:
       - "${DATABASEPORT:-5432}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./assets/postgres/scripts:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data  # Persistência do banco
+      - ./assets/postgres/scripts:/docker-entrypoint-initdb.d  # Scripts de inicialização (SQL)
 
+# ======================
+# 🔐 Keycloak (Autenticação)
+# ======================
   keycloak:
     image: ghcr.io/nicolasbarsalini/keycloak:latest
     container_name: espacobuddy_keycloak
@@ -29,9 +35,9 @@ services:
       - "${KEYCLOAKPORT:-8080}:8080"
     restart: always
     volumes:
-      - ./assets/keycloak/themes:/opt/keycloak/themes
-      - ./assets/keycloak/import:/opt/keycloak/data/import
-      - urbaneden_keycloak_volume:/opt/keycloak/data
+      - ./assets/keycloak/themes:/opt/keycloak/themes        # Temas personalizados
+      - ./assets/keycloak/import:/opt/keycloak/data/import   # Importação de realm
+      - urbaneden_keycloak_volume:/opt/keycloak/data         # Persistência dos dados do Keycloak
     environment:
       JAVA_OPTS: "-Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.scripts=enabled -Dkeycloak.profile.feature.authorization=enabled -Dkeycloak.profile.mode=standalone"
       KC_DB: "postgres"
@@ -44,12 +50,15 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
       KC_THEME: "custom-themes"
       KC_THEME_EMAIL: "custom-themes"
-    command: ["start-dev"]
+    command: ["start-dev"]  # Executa o Keycloak no modo de desenvolvimento
 
+# ======================
+# 📋 Serviço: Listar Dados
+# ======================
   list:
     build:
-      context: ./services/list  # Caminho onde está seu Dockerfile ou Containerfile
-      dockerfile: Containerfile # Ou "Dockerfile", se for o nome padrão
+      context: ./services/list
+      dockerfile: Containerfile
     container_name: espacobuddy_list
     restart: always
     ports:
@@ -70,10 +79,13 @@ services:
       retries: 5
       start_period: 30s
 
+# ======================
+# ➕ Serviço: Registro Dinâmico
+# ======================
   register:
     build:
-      context: ./services/register  # Caminho onde está seu Dockerfile ou Containerfile
-      dockerfile: Containerfile # Ou "Dockerfile", se for o nome padrão
+      context: ./services/register
+      dockerfile: Containerfile
     container_name: espacobuddy_register
     restart: always
     ports:
@@ -94,10 +106,13 @@ services:
       retries: 5
       start_period: 30s
 
+# ======================
+# 🗑️ Serviço: Deletar Dados
+# ======================
   delete:
     build:
-      context: ./services/delete  # Caminho onde está seu Dockerfile ou Containerfile
-      dockerfile: Containerfile # Ou "Dockerfile", se for o nome padrão
+      context: ./services/delete
+      dockerfile: Containerfile
     container_name: espacobuddy_delete
     restart: always
     ports:
@@ -118,10 +133,62 @@ services:
       retries: 5
       start_period: 30s
 
-volumes:
-  pgdata:
-  urbaneden_keycloak_volume:
+# ======================
+# 🕒 Serviço: Executar Rotinas
+# ======================
+  run_routine:
+    build:
+      context: ./services/run_routine
+      dockerfile: Containerfile
+    container_name: espacobuddy_run_routine
+    restart: always
+    ports:
+      - "${ROUTINE_PORT:-5005}:5005"
+    environment:
+      FLASK_ENV: ${FLASK_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MQTT_BROKER: ${MQTT_BROKER}
+      MQTT_PORT: ${MQTT_PORT}
+      MQTT_TOPIC_ROUTINE: ${MQTT_TOPIC_ROUTINE}
+    networks:
+      - espacobuddy_network
+    depends_on:
+      - postgres
+      - mosquitto
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health"]
+      interval: 30s
+      retries: 5
+      start_period: 30s
 
+# ======================
+# 📡 Broker MQTT (Mosquitto)
+# ======================
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: espacobuddy_mosquitto
+    restart: always
+    ports:
+      - "1883:1883"  # Porta padrão MQTT
+    volumes:
+      - ./services/mosquitto/config:/mosquitto/config  # Configuração customizada
+      - ./services/mosquitto/data:/mosquitto/data      # Persistência de dados
+    networks:
+      - espacobuddy_network
+
+# ======================
+# 📦 Volumes persistentes
+# ======================
+volumes:
+  pgdata:                         # Volume para dados do PostgreSQL
+  urbaneden_keycloak_volume:     # Volume para persistência do Keycloak
+
+# ======================
+# 🌐 Rede interna
+# ======================
 networks:
   espacobuddy_network:
-    driver: bridge
+    driver: bridge                # Rede tipo bridge para comunicação interna entre os serviços

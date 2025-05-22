@@ -3,6 +3,10 @@ import time
 import psycopg2
 from paho.mqtt import client as mqtt_client
 
+###########################################################
+## ATENÇÃO - SCRIPT APENAS PARA TESTE NO AMBIENTE DE DEV ##
+###########################################################
+
 # Configurações do PostgreSQL
 db_config = {
     "host": "localhost",        # ou IP do servidor PostgreSQL
