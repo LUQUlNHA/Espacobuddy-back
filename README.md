@@ -67,8 +67,8 @@ Este projeto implementa um ecossistema de serviços backend modulares, com foco 
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
-cd seu-repositorio
+git clone https://github.com/LUQUlNHA/Espacobuddy-back.git
+cd Espacobuddy-back
 ```
 
 ### 2. Configure o `.env`
